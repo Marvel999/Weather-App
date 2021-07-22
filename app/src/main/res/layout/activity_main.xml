@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/screen_bag"
+    tools:context=".MainActivity">
+<!--Attaching fragment static because in this application on other fragment os need-->
+<!--    There is case of multiple fragment then is i was use dynamic fragment or navigation component.-->
+<fragment
+    android:id="@+id/fragment_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:name="com.wrapx.weatherapp.ui.weatherScreenFragment"/>
+
+
+</LinearLayout>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Weather App</string>
+    <string name="weather_Screen_Heading">Temperature</string>
+    <string name="example_temp">26</string>
+    <string name="example_location">current location:- Delhi</string>
+    <string name="btn_text_retry">Retry</string>
+</resources>
