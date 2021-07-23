@@ -17,16 +17,17 @@ import com.wrapx.weatherapp.extention.load
 import com.wrapx.weatherapp.util.Util
 import kotlinx.android.synthetic.main.error_layout.*
 
-class weatherScreenFragment : Fragment() {
+class WeatherScreenFragment : Fragment() {
 
     private lateinit var viewModel: WeatherScreenViewModel
-
     private lateinit var weatherLayout:ViewGroup;
     private lateinit var errorLayout:ViewGroup;
     private lateinit var refresh:Button;
     private lateinit var temperatureTv:TextView;
     private lateinit var locationTxv:TextView;
     private lateinit var weaterIcon:ImageView;
+    private val MYTAG="WeatherScreenFragment"
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,7 +50,7 @@ class weatherScreenFragment : Fragment() {
 
 
         viewModel.networkError.observe(viewLifecycleOwner, {
-            Log.e("My TAG", "yes boiii $it")
+            Log.e(MYTAG, "Error: $it")
             errorLayout.visibility=View.VISIBLE
             weatherLayout.visibility=View.GONE
             animationView.setAnimation(R.raw.retry)
@@ -59,7 +60,7 @@ class weatherScreenFragment : Fragment() {
             errorLayout.visibility=View.GONE
             weatherLayout.visibility=View.VISIBLE
            setDataOnView(it.current.temperature)
-            Log.e("My TAG", "yes boiii $it")
+            Log.e(MYTAG, "Success: $it")
 
         })
         callApi()

@@ -48,11 +48,12 @@
             android:id="@+id/weather_Img"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginStart="30dp"
             android:layout_marginTop="60dp"
             android:layout_marginBottom="60dp"
             android:src="@drawable/ic_cloud"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/temperature_txv"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_txv" />
 
@@ -60,13 +61,14 @@
             android:id="@+id/temperature_txv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="30dp"
             android:text="@string/example_temp"
             android:textColor="@color/black"
             android:textSize="45sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/weather_Img"
             app:layout_constraintTop_toBottomOf="@+id/title_txv" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

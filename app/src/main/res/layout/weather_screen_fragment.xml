@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.weatherScreenFragment">
+    android:background="@color/screen_bag"
+    tools:context=".ui.WeatherScreenFragment">
 
     <include
         android:id="@+id/weather_layout"
