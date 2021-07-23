@@ -3,6 +3,7 @@ package com.wrapx.weatherapp.ui
 import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,6 +20,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -68,7 +70,7 @@ class WeatherScreenFragment : Fragment() {
         weaterIcon=weatherLayout.findViewById(R.id.weather_Img)
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
-        checkLocationStatus()
+       // checkLocationStatus()
         checkPermissions()
     }
 
@@ -259,10 +261,36 @@ class WeatherScreenFragment : Fragment() {
             if (permissions == true ) {
                 Log.d("TAG", "Permission granted")
             } else {
-                Log.d("TAG", "Permission not granted")
+                AlertDialog.Builder(requireContext())
+                .setTitle("Location Permission Needed")
+                .setCancelable(false)
+                .setMessage("This app needs the Location permission, please accept to use location functionality")
+                .setPositiveButton(
+                    "OK"
+                ) { _, _ ->
+                    val showRationale = shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)
+                    //Prompt the user once explanation has been shown
+                    if (!showRationale) {
+                        openSomeActivityForResult()
+                    }else {
+                        checkPermissions()
+                    }
+
+                }
+                .create()
+                .show()
             }
         }
+    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        Log.d("MY TAG", "OUT data ")
+        checkPermissions()
+    }
 
-    private fun Boolean?.orFalse(): Boolean = this ?: false
+    private fun openSomeActivityForResult() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", requireActivity().packageName, null)
+        intent.data = uri
+        resultLauncher.launch(intent)
+    }
 
 }
