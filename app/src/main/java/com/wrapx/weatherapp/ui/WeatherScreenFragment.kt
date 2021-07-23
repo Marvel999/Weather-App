@@ -6,11 +6,9 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +17,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
@@ -30,9 +27,9 @@ import com.google.android.gms.location.*
 import com.wrapx.weatherapp.R
 import com.wrapx.weatherapp.data.model.Location
 import com.wrapx.weatherapp.extention.load
-import com.wrapx.weatherapp.util.LocationUtils
 import com.wrapx.weatherapp.util.PermissionUtils
 import com.wrapx.weatherapp.util.Util
+import com.wrapx.weatherapp.util.Util.getUserLocation
 import kotlinx.android.synthetic.main.error_layout.*
 
 
@@ -45,7 +42,6 @@ class WeatherScreenFragment : Fragment() {
     private lateinit var temperatureTv: TextView
     private lateinit var locationTxv: TextView
     private lateinit var weaterIcon: ImageView
-    private val MYTAG = "WeatherScreenFragment"
 
     private var userLocation: String = ""
 
@@ -70,12 +66,18 @@ class WeatherScreenFragment : Fragment() {
         locationTxv = weatherLayout.findViewById(R.id.location_txv)
         weaterIcon = weatherLayout.findViewById(R.id.weather_Img)
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        progressDialog.setMessage("Fetching location and data please wait...")
-        // checkLocationStatus()
+        progressDialog.setMessage(getString(R.string.loading_message))
+
+        //Initialize the observers
+        initObservers()
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onStart() {
+        super.onStart()
+        checkPermissions()
+    }
+
+    private fun initObservers() {
         viewModel = ViewModelProvider(this).get(WeatherScreenViewModel::class.java)
 
 
@@ -83,16 +85,15 @@ class WeatherScreenFragment : Fragment() {
 
             //dismiss dialog
             progressDialog.dismiss()
-            Log.e("MY TAG", "ERROR $it")
 
-            Toast.makeText(requireContext(), "Internal server error!!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.server_error), Toast.LENGTH_SHORT)
+                .show()
             errorLayout.visibility = View.VISIBLE
             weatherLayout.visibility = View.GONE
             animationView.setAnimation(R.raw.retry)
         })
 
         viewModel.currentWeather.observe(viewLifecycleOwner, {
-
             //dismiss dialog
             progressDialog.dismiss()
 
@@ -109,11 +110,27 @@ class WeatherScreenFragment : Fragment() {
         currentLocation.observe(viewLifecycleOwner, {
             if (it.lat == null || it.lng == null) return@observe
 
-           this.userLocation = LocationUtils.getUserLocation(it.lat, it.lng, requireContext())
-            locationTxv.setText(userLocation)
+            this.userLocation = getUserLocation(it.lat, it.lng, requireContext())
+            locationTxv.text = userLocation
             callApi(userLocation)
         })
+    }
 
+    /**
+     * Calling the api for fetching the weather api
+     * @param location user location
+     */
+    private fun callApi(location: String) {
+        if (Util.isNetworkAvailable(requireContext())) {
+            viewModel.getCurrentWeather(location)
+        } else {
+            progressDialog.dismiss()
+            Toast.makeText(requireContext(), getString(R.string.internet_error), Toast.LENGTH_SHORT)
+                .show()
+            errorLayout.visibility = View.VISIBLE
+            weatherLayout.visibility = View.GONE
+            animationView.setAnimation(R.raw.no_internet)
+        }
     }
 
     private val mLocationCallback: LocationCallback = object : LocationCallback() {
@@ -164,11 +181,6 @@ class WeatherScreenFragment : Fragment() {
         )
     }
 
-    override fun onStart() {
-        super.onStart()
-        checkPermissions()
-    }
-
     private fun checkLocationEnabled() {
         when {
             PermissionUtils.isLocationEnabled(requireContext()) -> {
@@ -179,20 +191,6 @@ class WeatherScreenFragment : Fragment() {
             }
         }
     }
-
-
-    private fun callApi(location: String) {
-        if (Util.isNetworkAvailable(requireContext())) {
-            viewModel.getCurrentWeather(location)
-        } else {
-            progressDialog.dismiss()
-            Toast.makeText(requireContext(), "Internet is not connected!!", Toast.LENGTH_SHORT).show()
-            errorLayout.visibility = View.VISIBLE
-            weatherLayout.visibility = View.GONE
-            animationView.setAnimation(R.raw.no_internet)
-        }
-    }
-
 
     private fun checkPermissions() {
         if (context?.let {
@@ -218,9 +216,9 @@ class WeatherScreenFragment : Fragment() {
                 checkLocationEnabled()
             } else {
                 AlertDialog.Builder(requireContext())
-                    .setTitle("Location Permission Needed")
+                    .setTitle(getString(R.string.permission_title))
                     .setCancelable(false)
-                    .setMessage("This app needs the Location permission, please accept to use location functionality")
+                    .setMessage(getString(R.string.require_permission_message))
                     .setPositiveButton(
                         "OK"
                     ) { _, _ ->
@@ -248,5 +246,4 @@ class WeatherScreenFragment : Fragment() {
         intent.data = uri
         resultLauncher.launch(intent)
     }
-
 }

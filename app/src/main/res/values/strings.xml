@@ -5,6 +5,11 @@
     <string name="example_location">---------</string>
     <string name="btn_text_retry">Retry</string>
     <string name="enable_gps">Enable GPS</string>
-    <string name="required_for_this_app">Require</string>
+    <string name="required_for_this_app">This app require GPS for fetching current weather</string>
     <string name="enable_now">Enable Now</string>
+    <string name="require_permission_message">This app needs the Location permission, please accept to use location functionality</string>
+    <string name="permission_title">Location Permission Needed</string>
+    <string name="internet_error">Internet is not connected!!</string>
+    <string name="server_error">Internal server error!!</string>
+    <string name="loading_message">Fetching location and data please wait...</string>
 </resources>

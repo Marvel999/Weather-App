@@ -8,6 +8,6 @@ import retrofit2.http.Query
 interface ApiService {
     @GET("/current")
     suspend fun fetchCurrentWeather(
-        @Query("query") cityName:String,
+        @Query("query") cityName: String,
     ): Response<WeatherModel>
 }

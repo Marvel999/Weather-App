@@ -10,6 +10,7 @@ import com.wrapx.weatherapp.R
 object PermissionUtils {
 
     private lateinit var alertDialog: AlertDialog
+
     /**
      * Function to check if location of the device is enabled or not
      */
@@ -41,6 +42,4 @@ object PermissionUtils {
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }.create()
     }
-
-
 }

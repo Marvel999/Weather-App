@@ -5,8 +5,8 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class WeatherModel(
-   @field:Json(name = "current")
-   val current: Current
+    @field:Json(name = "current")
+    val current: Current
 )
 
 @JsonClass(generateAdapter = true)
