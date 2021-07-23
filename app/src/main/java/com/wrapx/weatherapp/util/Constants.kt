@@ -2,5 +2,5 @@ package com.wrapx.weatherapp.util
 
 object Constants {
 
-    const val  API_KEY = "701dcc500e3a736624f3d9319d7f5d1"
+    const val  API_KEY = "baa5dc2a911c5e7ced3dbeae2ef5a6c2"
 }

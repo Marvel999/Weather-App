@@ -83,6 +83,7 @@ class WeatherScreenFragment : Fragment() {
 
             //dismiss dialog
             progressDialog.dismiss()
+            Log.e("MY TAG", "ERROR $it")
 
             Toast.makeText(requireContext(), "Internal server error!!", Toast.LENGTH_SHORT).show()
             errorLayout.visibility = View.VISIBLE
@@ -109,6 +110,7 @@ class WeatherScreenFragment : Fragment() {
             if (it.lat == null || it.lng == null) return@observe
 
            this.userLocation = LocationUtils.getUserLocation(it.lat, it.lng, requireContext())
+            locationTxv.setText(userLocation)
             callApi(userLocation)
         })
 

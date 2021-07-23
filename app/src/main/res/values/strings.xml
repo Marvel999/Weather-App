@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Weather App</string>
     <string name="weather_Screen_Heading">Temperature</string>
-    <string name="example_temp">26</string>
-    <string name="example_location">----</string>
+    <string name="example_temp">----</string>
+    <string name="example_location">---------</string>
     <string name="btn_text_retry">Retry</string>
     <string name="enable_gps">Enable GPS</string>
     <string name="required_for_this_app">Require</string>
