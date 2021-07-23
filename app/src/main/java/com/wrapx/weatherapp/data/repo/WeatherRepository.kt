@@ -8,9 +8,9 @@ import kotlinx.coroutines.withContext
 
 class WeatherRepository: Repository {
 
-   override suspend fun fetchCurrentWeather() = run {
+   override suspend fun fetchCurrentWeather(location: String) = run {
        return@run try {
-           val result = ApiClient.API.fetchCurrentWeather("mumbai")
+           val result = ApiClient.API.fetchCurrentWeather(location)
            Result.Success(result.body()!!)
        }catch (throwable: Exception) {
            Result.Error(throwable)

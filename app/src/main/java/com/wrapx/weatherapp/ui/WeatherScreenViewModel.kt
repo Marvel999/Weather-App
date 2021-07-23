@@ -20,9 +20,9 @@ class WeatherScreenViewModel : ViewModel() {
     private val _networkError = MutableLiveData<String>()
     val networkError: LiveData<String> = _networkError
 
-    fun getCurrentWeather() {
+    fun getCurrentWeather(location:String) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val result = repository.fetchCurrentWeather()) {
+            when (val result = repository.fetchCurrentWeather(location)) {
                 is Result.Success -> _currentWeather.postValue(result.data)
                 is Result.Error -> _networkError.postValue("Something went wrong!! ${result.exception}")
             }

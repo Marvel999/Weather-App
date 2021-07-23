@@ -2,6 +2,7 @@ package com.wrapx.weatherapp.ui
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -28,6 +29,7 @@ import com.google.android.gms.location.*
 import com.wrapx.weatherapp.R
 import com.wrapx.weatherapp.data.model.Location
 import com.wrapx.weatherapp.extention.load
+import com.wrapx.weatherapp.util.LocationUtils
 import com.wrapx.weatherapp.util.PermissionUtils
 import com.wrapx.weatherapp.util.Util
 import kotlinx.android.synthetic.main.error_layout.*
@@ -44,9 +46,12 @@ class WeatherScreenFragment : Fragment() {
     private lateinit var weaterIcon: ImageView
     private val MYTAG = "WeatherScreenFragment"
 
-    lateinit var mFusedLocationClient: FusedLocationProviderClient
-    var currentLocation = MutableLiveData<Location>()
+    private var userLocation: String = ""
 
+    private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private var currentLocation = MutableLiveData<Location>()
+
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,6 +61,7 @@ class WeatherScreenFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        progressDialog = ProgressDialog(requireContext())
         weatherLayout = view.findViewById(R.id.weather_layout)
         errorLayout = view.findViewById(R.id.error_layout)
         refresh = errorLayout.findViewById(R.id.refrace_btn)
@@ -63,7 +69,7 @@ class WeatherScreenFragment : Fragment() {
         locationTxv = weatherLayout.findViewById(R.id.location_txv)
         weaterIcon = weatherLayout.findViewById(R.id.weather_Img)
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
+        progressDialog.setMessage("Fetching location and data please wait...")
         // checkLocationStatus()
     }
 
@@ -73,6 +79,10 @@ class WeatherScreenFragment : Fragment() {
 
 
         viewModel.networkError.observe(viewLifecycleOwner, {
+
+            //dismiss dialog
+            progressDialog.dismiss()
+
             Log.e(MYTAG, "Error: $it")
             errorLayout.visibility = View.VISIBLE
             weatherLayout.visibility = View.GONE
@@ -80,21 +90,26 @@ class WeatherScreenFragment : Fragment() {
         })
 
         viewModel.currentWeather.observe(viewLifecycleOwner, {
+
+            //dismiss dialog
+            progressDialog.dismiss()
+
             errorLayout.visibility = View.GONE
             weatherLayout.visibility = View.VISIBLE
             setDataOnView(it.current.temperature)
-            Log.e(MYTAG, "Success: $it")
 
         })
-        callApi()
+
         refresh.setOnClickListener {
-            callApi()
+            callApi(userLocation)
         }
 
         currentLocation.observe(viewLifecycleOwner, {
-            Log.e("MY TAG", "$it")
-        })
+            if (it.lat == null || it.lng == null) return@observe
 
+           this.userLocation = LocationUtils.getUserLocation(it.lat, it.lng, requireContext())
+            callApi(userLocation)
+        })
 
     }
 
@@ -125,6 +140,8 @@ class WeatherScreenFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun requestNewLocationData() {
 
+        //Show progress dialog
+        progressDialog.show()
         // Initializing LocationRequest
         // object with appropriate methods
         val mLocationRequest = LocationRequest()
@@ -161,10 +178,10 @@ class WeatherScreenFragment : Fragment() {
     }
 
 
-    private fun callApi() {
+    private fun callApi(location: String) {
         @RequiresApi(Build.VERSION_CODES.M)
         if (Util.isOnline(this.requireContext())) {
-            viewModel.getCurrentWeather()
+            viewModel.getCurrentWeather(location)
         } else {
             errorLayout.visibility = View.VISIBLE
             weatherLayout.visibility = View.GONE
@@ -180,12 +197,12 @@ class WeatherScreenFragment : Fragment() {
                     ACCESS_FINE_LOCATION
                 )
             } != PackageManager.PERMISSION_GRANTED) {
-            Log.d("TAG", "Request Permissions")
+            //Permission not granted request for new permission
             requestPermissions.launch(
                 ACCESS_FINE_LOCATION
             )
         } else {
-            Log.d("TAG", "Permission Already Granted")
+            //Permission granted
             checkLocationEnabled()
         }
     }

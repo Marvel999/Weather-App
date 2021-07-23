@@ -4,5 +4,5 @@ import com.wrapx.weatherapp.data.Result
 import com.wrapx.weatherapp.data.model.WeatherModel
 
 interface Repository {
-    suspend fun fetchCurrentWeather(): Result<WeatherModel>
+    suspend fun fetchCurrentWeather(location: String): Result<WeatherModel>
 }
