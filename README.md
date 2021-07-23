@@ -3,7 +3,18 @@
 <!---About-->
 This is a simple weather App. Which displays your current Temperature and Location. This app is compatible in Android SDK-21.
 <!---screenshot--->
+<p align="center">
+     <img src="https://user-images.githubusercontent.com/43094705/126774546-679446aa-6745-4db3-afd8-2e91daa25d0f.jpeg" width="200"  title="no internet">
+<img src="https://user-images.githubusercontent.com/43094705/126773896-5fcf48ae-b7ee-4b16-93c2-9d1a5cef45b3.jpeg" width="200"  title="no internet">
+  <img src="https://user-images.githubusercontent.com/43094705/126774044-20eb0c4b-5fd9-42ca-851c-1de42d56a0b0.jpeg" width="200"  title="no internet">
 
+</p>
+
+
+
+## Demo Link
+[Build APK](https://drive.google.com/file/d/1ikpo4rykblbF4qMfcwa9ZJ-4JdF66OXL/view?usp=sharing)
+[Demo Video](https://drive.google.com/file/d/1ij5Uvbmcnez9318Oq4Jh1UEW8M35gMSG/view?usp=sharing)
 <!---Techstack--->
 ## Techstack
 1. kotlin
@@ -52,6 +63,10 @@ This is a simple weather App. Which displays your current Temperature and Locati
 ## What is more to improve in codebase.
 1. Some location calls are depricated and I am using that beacuse of time constrain.
 2. Beacuse in this project have only one Fragment so we added fragment statically but can use dynamic fragment transaction(could be Navigation component).  
+
+## Bug In API
+   Some time API give wrong temperature [Know More](https://user-images.githubusercontent.com/43094705/126774968-c932b4c4-7227-440d-b1e4-d86850a0f951.png)
+   
 
 
 Thank you, Happy Coding...:)
