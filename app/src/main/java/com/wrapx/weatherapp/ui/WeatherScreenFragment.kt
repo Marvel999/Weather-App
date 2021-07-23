@@ -30,20 +30,19 @@ import com.wrapx.weatherapp.data.model.Location
 import com.wrapx.weatherapp.extention.load
 import com.wrapx.weatherapp.util.PermissionUtils
 import com.wrapx.weatherapp.util.Util
-import com.wrapx.weatherapp.util.checkLocationPermission
 import kotlinx.android.synthetic.main.error_layout.*
 
 
 class WeatherScreenFragment : Fragment() {
 
     private lateinit var viewModel: WeatherScreenViewModel
-    private lateinit var weatherLayout:ViewGroup;
-    private lateinit var errorLayout:ViewGroup;
-    private lateinit var refresh:Button;
-    private lateinit var temperatureTv:TextView;
-    private lateinit var locationTxv:TextView;
-    private lateinit var weaterIcon:ImageView;
-    private val MYTAG="WeatherScreenFragment"
+    private lateinit var weatherLayout: ViewGroup
+    private lateinit var errorLayout: ViewGroup
+    private lateinit var refresh: Button
+    private lateinit var temperatureTv: TextView
+    private lateinit var locationTxv: TextView
+    private lateinit var weaterIcon: ImageView
+    private val MYTAG = "WeatherScreenFragment"
 
     lateinit var mFusedLocationClient: FusedLocationProviderClient
     var currentLocation = MutableLiveData<Location>()
@@ -57,15 +56,15 @@ class WeatherScreenFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        weatherLayout=view.findViewById(R.id.weather_layout);
-        errorLayout=view.findViewById(R.id.error_layout);
-        refresh=errorLayout.findViewById(R.id.refrace_btn)
-        temperatureTv=weatherLayout.findViewById(R.id.temperature_txv)
-        locationTxv=weatherLayout.findViewById(R.id.location_txv)
-        weaterIcon=weatherLayout.findViewById(R.id.weather_Img)
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        weatherLayout = view.findViewById(R.id.weather_layout)
+        errorLayout = view.findViewById(R.id.error_layout)
+        refresh = errorLayout.findViewById(R.id.refrace_btn)
+        temperatureTv = weatherLayout.findViewById(R.id.temperature_txv)
+        locationTxv = weatherLayout.findViewById(R.id.location_txv)
+        weaterIcon = weatherLayout.findViewById(R.id.weather_Img)
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-       // checkLocationStatus()
+        // checkLocationStatus()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -75,15 +74,15 @@ class WeatherScreenFragment : Fragment() {
 
         viewModel.networkError.observe(viewLifecycleOwner, {
             Log.e(MYTAG, "Error: $it")
-            errorLayout.visibility=View.VISIBLE
-            weatherLayout.visibility=View.GONE
+            errorLayout.visibility = View.VISIBLE
+            weatherLayout.visibility = View.GONE
             animationView.setAnimation(R.raw.retry)
         })
 
         viewModel.currentWeather.observe(viewLifecycleOwner, {
-            errorLayout.visibility=View.GONE
-            weatherLayout.visibility=View.VISIBLE
-           setDataOnView(it.current.temperature)
+            errorLayout.visibility = View.GONE
+            weatherLayout.visibility = View.VISIBLE
+            setDataOnView(it.current.temperature)
             Log.e(MYTAG, "Success: $it")
 
         })
@@ -92,33 +91,16 @@ class WeatherScreenFragment : Fragment() {
             callApi()
         }
 
-        currentLocation.observe(viewLifecycleOwner,  {
+        currentLocation.observe(viewLifecycleOwner, {
             Log.e("MY TAG", "$it")
         })
 
 
     }
 
-    private fun checkLocationStatus() {
-        if (checkLocationPermission()) {
-            mFusedLocationClient.lastLocation.addOnCompleteListener { task ->
-                val location: android.location.Location? = task.result
-                if (location == null) {
-                    requestNewLocationData()
-                } else {
-                    currentLocation.value = Location(
-                        location.latitude,
-                        location.longitude
-                    )
-                }
-            }
-        }
-    }
-
     private val mLocationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val mLastLocation = locationResult.lastLocation
-            Log.e("MY TAG", "$mLastLocation")
             currentLocation.value = Location(
                 mLastLocation.latitude,
                 mLastLocation.longitude
@@ -126,16 +108,14 @@ class WeatherScreenFragment : Fragment() {
         }
     }
 
-
-
-    private fun setDataOnView(temperature: Int){
+    private fun setDataOnView(temperature: Int) {
         val temp = "${temperature.toString().trim()} °C"
         temperatureTv.text = temp
-        if (temperature<=30){
+        if (temperature <= 30) {
             AppCompatResources.getDrawable(requireContext(), R.drawable.ic_cloud)?.let {
                 weaterIcon.load(it)
             }
-        }else{
+        } else {
             AppCompatResources.getDrawable(requireContext(), R.drawable.ic_sun)?.let {
                 weaterIcon.load(it)
             }
@@ -144,7 +124,6 @@ class WeatherScreenFragment : Fragment() {
 
     @SuppressLint("MissingPermission")
     private fun requestNewLocationData() {
-
 
         // Initializing LocationRequest
         // object with appropriate methods
@@ -182,13 +161,13 @@ class WeatherScreenFragment : Fragment() {
     }
 
 
-    private fun callApi(){
+    private fun callApi() {
         @RequiresApi(Build.VERSION_CODES.M)
-        if (Util.isOnline(this.requireContext())    ){
-           viewModel.getCurrentWeather()
-        }else{
-            errorLayout.visibility=View.VISIBLE
-            weatherLayout.visibility=View.GONE
+        if (Util.isOnline(this.requireContext())) {
+            viewModel.getCurrentWeather()
+        } else {
+            errorLayout.visibility = View.VISIBLE
+            weatherLayout.visibility = View.GONE
             animationView.setAnimation(R.raw.no_internet)
         }
     }
@@ -203,7 +182,8 @@ class WeatherScreenFragment : Fragment() {
             } != PackageManager.PERMISSION_GRANTED) {
             Log.d("TAG", "Request Permissions")
             requestPermissions.launch(
-                ACCESS_FINE_LOCATION)
+                ACCESS_FINE_LOCATION
+            )
         } else {
             Log.d("TAG", "Permission Already Granted")
             checkLocationEnabled()
@@ -213,31 +193,33 @@ class WeatherScreenFragment : Fragment() {
     private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissions ->
 
-            if (permissions == true ) {
+            if (permissions == true) {
                 checkLocationEnabled()
             } else {
                 AlertDialog.Builder(requireContext())
-                .setTitle("Location Permission Needed")
-                .setCancelable(false)
-                .setMessage("This app needs the Location permission, please accept to use location functionality")
-                .setPositiveButton(
-                    "OK"
-                ) { _, _ ->
-                    val showRationale = shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)
-                    //Prompt the user once explanation has been shown
-                    if (!showRationale) {
-                        openSomeActivityForResult()
-                    }else {
-                        checkPermissions()
+                    .setTitle("Location Permission Needed")
+                    .setCancelable(false)
+                    .setMessage("This app needs the Location permission, please accept to use location functionality")
+                    .setPositiveButton(
+                        "OK"
+                    ) { _, _ ->
+                        val showRationale =
+                            shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)
+                        //Prompt the user once explanation has been shown
+                        if (!showRationale) {
+                            openSomeActivityForResult()
+                        } else {
+                            checkPermissions()
+                        }
                     }
-                }
-                .create()
-                .show()
+                    .create()
+                    .show()
             }
         }
-    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        checkPermissions()
-    }
+    private var resultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            checkPermissions()
+        }
 
     private fun openSomeActivityForResult() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
