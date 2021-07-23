@@ -1,21 +1,41 @@
 package com.wrapx.weatherapp.ui
 
+import android.Manifest
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import com.google.android.gms.location.*
+import com.google.android.material.snackbar.Snackbar
 import com.wrapx.weatherapp.R
+import com.wrapx.weatherapp.data.model.Location
 import com.wrapx.weatherapp.extention.load
+import com.wrapx.weatherapp.util.LocationUtils.MY_PERMISSIONS_REQUEST_LOCATION
 import com.wrapx.weatherapp.util.Util
+import com.wrapx.weatherapp.util.checkLocationPermission
+import com.wrapx.weatherapp.util.requestLocationPermission
 import kotlinx.android.synthetic.main.error_layout.*
+
 
 class WeatherScreenFragment : Fragment() {
 
@@ -27,6 +47,10 @@ class WeatherScreenFragment : Fragment() {
     private lateinit var locationTxv:TextView;
     private lateinit var weaterIcon:ImageView;
     private val MYTAG="WeatherScreenFragment"
+
+    lateinit var mFusedLocationClient: FusedLocationProviderClient
+    var currentLocation = MutableLiveData<Location>()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +66,10 @@ class WeatherScreenFragment : Fragment() {
         temperatureTv=weatherLayout.findViewById(R.id.temperature_txv)
         locationTxv=weatherLayout.findViewById(R.id.location_txv)
         weaterIcon=weatherLayout.findViewById(R.id.weather_Img)
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
+        checkLocationStatus()
+        checkPermissions()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -68,28 +96,173 @@ class WeatherScreenFragment : Fragment() {
             callApi()
         }
 
+        currentLocation.observe(viewLifecycleOwner,  {
+            Log.e("MY TAG", "$it")
+        })
+
+
     }
 
-    private fun setDataOnView(temperature: Int){
-        temperatureTv.setText(temperature.toString().trim()+"°C")
-        if (temperature<=30){
-            weaterIcon.load(resources.getDrawable(R.drawable.ic_cloud))
-        }else{
-            weaterIcon.load(resources.getDrawable(R.drawable.ic_sun))
-
+    private fun checkLocationStatus() {
+        if (checkLocationPermission()) {
+            mFusedLocationClient.lastLocation.addOnCompleteListener { task ->
+                val location: android.location.Location? = task.result
+                if (location == null) {
+                    requestNewLocationData()
+                } else {
+                    currentLocation.value = Location(
+                        location.latitude,
+                        location.longitude
+                    )
+                }
+            }
         }
+    }
+
+    private val mLocationCallback: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val mLastLocation = locationResult.lastLocation
+            Log.e("MY TAG", "$mLastLocation")
+            currentLocation.value = Location(
+                mLastLocation.latitude,
+                mLastLocation.longitude
+            )
+        }
+    }
+
+
+
+    private fun setDataOnView(temperature: Int){
+        val temp = "${temperature.toString().trim()} °C"
+        temperatureTv.text = temp
+        if (temperature<=30){
+            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_cloud)?.let {
+                weaterIcon.load(it)
+            }
+        }else{
+            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_sun)?.let {
+                weaterIcon.load(it)
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestNewLocationData() {
+
+        // Initializing LocationRequest
+        // object with appropriate methods
+        val mLocationRequest = LocationRequest()
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest.interval = 5
+        mLocationRequest.fastestInterval = 0
+        mLocationRequest.numUpdates = 1
+
+        // setting LocationRequest
+        // on FusedLocationClient
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        mFusedLocationClient.requestLocationUpdates(
+            mLocationRequest,
+            mLocationCallback,
+            Looper.myLooper()
+        )
     }
 
 
     private fun callApi(){
         @RequiresApi(Build.VERSION_CODES.M)
-        if (Util.isOnline(this.requireContext())){
-            viewModel.getCurrentWeather()
+        if (Util.isOnline(this.requireContext())    ){
+           viewModel.getCurrentWeather()
         }else{
             errorLayout.visibility=View.VISIBLE
             weatherLayout.visibility=View.GONE
             animationView.setAnimation(R.raw.no_internet)
         }
     }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.e("ShowTag", "Yes show the location")
+
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_LOCATION -> {
+                Log.e("ShowTag", "Yes show the location")
+
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ContextCompat.checkSelfPermission(
+                            requireContext(),
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        requestNewLocationData()
+                    }
+
+                } else {
+                    Log.e("ShowTag", "Yes show the location")
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(
+                            requireActivity(),
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                    ) {
+                        requestLocationPermission()
+                    } else {
+                        val snackbar = Snackbar.make(
+                            requireView(),
+                            resources.getString(R.string.app_name),
+                            Snackbar.LENGTH_LONG
+                        )
+                        snackbar.setAction(
+                            resources.getString(com.wrapx.weatherapp.R.string.app_name),
+                            View.OnClickListener {
+                                if (activity == null) {
+                                    return@OnClickListener
+                                }
+                                val intent = Intent()
+                                intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                val uri = Uri.fromParts("package", requireActivity().packageName, null)
+                                intent.data = uri
+                                this@WeatherScreenFragment.startActivity(intent)
+                            })
+                        snackbar.show()
+                    }
+                }
+                return
+            }
+        }
+    }
+
+    private fun checkPermissions() {
+        if (context?.let {
+                ContextCompat.checkSelfPermission(
+                    it,
+                    ACCESS_FINE_LOCATION
+                )
+            } != PackageManager.PERMISSION_GRANTED) {
+            Log.d("TAG", "Request Permissions")
+            requestMultiplePermissions.launch(
+                ACCESS_FINE_LOCATION)
+        } else {
+            Log.d("TAG", "Permission Already Granted")
+        }
+    }
+
+    private val requestMultiplePermissions =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissions ->
+
+            if (permissions == true ) {
+                Log.d("TAG", "Permission granted")
+            } else {
+                Log.d("TAG", "Permission not granted")
+            }
+        }
+
+    private fun Boolean?.orFalse(): Boolean = this ?: false
 
 }

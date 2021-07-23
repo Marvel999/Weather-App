@@ -8,13 +8,12 @@ import kotlinx.coroutines.withContext
 
 class WeatherRepository: Repository {
 
-   override suspend fun fetchCurrentWeather() = withContext(Dispatchers.IO) {
-        return@withContext try {
-            val result = ApiClient.API.fetchCurrentWeather("mumbai")
-            Result.Success(result.body()!!)
-        }catch (throwable: Exception) {
-            Result.Error(throwable)
-        }
-    }
-
+   override suspend fun fetchCurrentWeather() = run {
+       return@run try {
+           val result = ApiClient.API.fetchCurrentWeather("mumbai")
+           Result.Success(result.body()!!)
+       }catch (throwable: Exception) {
+           Result.Error(throwable)
+       }
+   }
 }

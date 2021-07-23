@@ -8,6 +8,7 @@ import com.wrapx.weatherapp.data.Result
 import com.wrapx.weatherapp.data.repo.Repository
 import com.wrapx.weatherapp.data.repo.WeatherRepository
 import com.wrapx.weatherapp.data.model.WeatherModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class WeatherScreenViewModel : ViewModel() {
@@ -20,7 +21,7 @@ class WeatherScreenViewModel : ViewModel() {
     val networkError: LiveData<String> = _networkError
 
     fun getCurrentWeather() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             when (val result = repository.fetchCurrentWeather()) {
                 is Result.Success -> _currentWeather.postValue(result.data)
                 is Result.Error -> _networkError.postValue("Something went wrong!! ${result.exception}")
