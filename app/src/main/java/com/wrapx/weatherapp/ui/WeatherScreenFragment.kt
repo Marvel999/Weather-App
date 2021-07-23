@@ -1,9 +1,7 @@
 package com.wrapx.weatherapp.ui
 
-import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -22,20 +20,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.*
-import com.google.android.material.snackbar.Snackbar
 import com.wrapx.weatherapp.R
 import com.wrapx.weatherapp.data.model.Location
 import com.wrapx.weatherapp.extention.load
-import com.wrapx.weatherapp.util.LocationUtils.MY_PERMISSIONS_REQUEST_LOCATION
+import com.wrapx.weatherapp.util.PermissionUtils
 import com.wrapx.weatherapp.util.Util
 import com.wrapx.weatherapp.util.checkLocationPermission
-import com.wrapx.weatherapp.util.requestLocationPermission
 import kotlinx.android.synthetic.main.error_layout.*
 
 
@@ -71,7 +66,6 @@ class WeatherScreenFragment : Fragment() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
        // checkLocationStatus()
-        checkPermissions()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -151,6 +145,7 @@ class WeatherScreenFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun requestNewLocationData() {
 
+
         // Initializing LocationRequest
         // object with appropriate methods
         val mLocationRequest = LocationRequest()
@@ -162,11 +157,28 @@ class WeatherScreenFragment : Fragment() {
         // setting LocationRequest
         // on FusedLocationClient
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        mFusedLocationClient.lastLocation
         mFusedLocationClient.requestLocationUpdates(
             mLocationRequest,
             mLocationCallback,
-            Looper.myLooper()
+            Looper.getMainLooper()
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkPermissions()
+    }
+
+    private fun checkLocationEnabled() {
+        when {
+            PermissionUtils.isLocationEnabled(requireContext()) -> {
+                requestNewLocationData()
+            }
+            else -> {
+                PermissionUtils.showGPSNotEnabledDialog(requireContext())
+            }
+        }
     }
 
 
@@ -181,64 +193,6 @@ class WeatherScreenFragment : Fragment() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("ShowTag", "Yes show the location")
-
-        when (requestCode) {
-            MY_PERMISSIONS_REQUEST_LOCATION -> {
-                Log.e("ShowTag", "Yes show the location")
-
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // location-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(
-                            requireContext(),
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        requestNewLocationData()
-                    }
-
-                } else {
-                    Log.e("ShowTag", "Yes show the location")
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(
-                            requireActivity(),
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        )
-                    ) {
-                        requestLocationPermission()
-                    } else {
-                        val snackbar = Snackbar.make(
-                            requireView(),
-                            resources.getString(R.string.app_name),
-                            Snackbar.LENGTH_LONG
-                        )
-                        snackbar.setAction(
-                            resources.getString(com.wrapx.weatherapp.R.string.app_name),
-                            View.OnClickListener {
-                                if (activity == null) {
-                                    return@OnClickListener
-                                }
-                                val intent = Intent()
-                                intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                val uri = Uri.fromParts("package", requireActivity().packageName, null)
-                                intent.data = uri
-                                this@WeatherScreenFragment.startActivity(intent)
-                            })
-                        snackbar.show()
-                    }
-                }
-                return
-            }
-        }
-    }
 
     private fun checkPermissions() {
         if (context?.let {
@@ -248,18 +202,19 @@ class WeatherScreenFragment : Fragment() {
                 )
             } != PackageManager.PERMISSION_GRANTED) {
             Log.d("TAG", "Request Permissions")
-            requestMultiplePermissions.launch(
+            requestPermissions.launch(
                 ACCESS_FINE_LOCATION)
         } else {
             Log.d("TAG", "Permission Already Granted")
+            checkLocationEnabled()
         }
     }
 
-    private val requestMultiplePermissions =
+    private val requestPermissions =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissions ->
 
             if (permissions == true ) {
-                Log.d("TAG", "Permission granted")
+                checkLocationEnabled()
             } else {
                 AlertDialog.Builder(requireContext())
                 .setTitle("Location Permission Needed")
@@ -275,14 +230,12 @@ class WeatherScreenFragment : Fragment() {
                     }else {
                         checkPermissions()
                     }
-
                 }
                 .create()
                 .show()
             }
         }
-    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.d("MY TAG", "OUT data ")
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         checkPermissions()
     }
 
