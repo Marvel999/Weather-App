@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -83,7 +84,7 @@ class WeatherScreenFragment : Fragment() {
             //dismiss dialog
             progressDialog.dismiss()
 
-            Log.e(MYTAG, "Error: $it")
+            Toast.makeText(requireContext(), "Internal server error!!", Toast.LENGTH_SHORT).show()
             errorLayout.visibility = View.VISIBLE
             weatherLayout.visibility = View.GONE
             animationView.setAnimation(R.raw.retry)
@@ -179,10 +180,11 @@ class WeatherScreenFragment : Fragment() {
 
 
     private fun callApi(location: String) {
-        @RequiresApi(Build.VERSION_CODES.M)
-        if (Util.isOnline(this.requireContext())) {
+        if (Util.isNetworkAvailable(requireContext())) {
             viewModel.getCurrentWeather(location)
         } else {
+            progressDialog.dismiss()
+            Toast.makeText(requireContext(), "Internet is not connected!!", Toast.LENGTH_SHORT).show()
             errorLayout.visibility = View.VISIBLE
             weatherLayout.visibility = View.GONE
             animationView.setAnimation(R.raw.no_internet)
